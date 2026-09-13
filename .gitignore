@@ -4,6 +4,8 @@ __pycache__/
 *.pyc
 python/data/*.mat
 python/models/checkpoints/*.pt
+python/models/*.onnx
+python/models/*.mat
 experiments/*/
 !experiments/.gitkeep
 reports/*.html
