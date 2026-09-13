@@ -4,10 +4,24 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project state
 
-This repository currently contains only planning documents (in Japanese) — no code has been
-written yet. There is no MATLAB, Python, build, lint, or test tooling in place. When
-implementation begins, follow the directory layout and phase plan below, and update this file
-with real commands (test runners, MATLAB entry points, Python env setup) once they exist.
+This repository started as planning documents only; implementation now proceeds phase-by-phase
+per `03_実装計画書.md`. There is no build/lint/test tooling yet — update this file with real
+commands (test runners, MATLAB entry points, Python env setup) as each phase adds them.
+
+## Development workflow (required)
+
+For every unit of work (a plan phase, a sub-task, a fix):
+
+1. **Open a GitHub issue first** describing the task and which phase/requirement it maps to
+   (`gh issue create`).
+2. **Create a branch off `main`** for that issue before writing any code (e.g.
+   `phase0/python-env-setup`, `issue-12-nss-model`).
+3. Do the work, commit on that branch, push, and merge back to `main` (PR or direct merge, per
+   user preference at the time) — reference the issue number in the commit/PR.
+4. Don't commit directly to `main` for substantive work; `main` receives merges only.
+
+This applies to all future phases (Phase 0 onward) — don't batch multiple phases into one branch
+or one issue.
 
 ## What this project is
 
@@ -64,23 +78,47 @@ python/
 ├── eval_openloop.py             # long-horizon free rollout stability check
 ├── eval_stability.py            # equilibrium linearization / eigenvalue analysis
 └── export_onnx.py               # ONNX export for MATLAB import
-experiments/ablation_A_E/        # results of the 5 divergence-cause ablation experiments
+experiments/ablation_A_F/        # results of the 6 divergence-cause ablation experiments (A-E plus F)
 reports/report_template.md       # auto-generated report template (dimension-agnostic)
 docs/                             # copies of the 3 planning documents
 ```
 
 ## Key technical constraints to preserve when implementing
 
-- **Sampling period consistency**: physical model integration step, training data Ts, NSS
-  discrete time step, and closed-loop control period must all match (仕様書 §6.4). Ablation
-  experiment D specifically tests what happens when they don't — don't accidentally "fix" this
-  by resampling without recording it.
+- **Multi-rate control/surrogate design (仕様書 §6.4)**: the physical plant and controller run
+  at 8kHz (Ts_ctrl = 125μs) — this is the baseline everything else is defined relative to. The
+  NSS surrogate may run at the same 8kHz or be downsampled to 200Hz (40:1 decimation). When
+  downsampled, torque input to the surrogate is sampled with zero-order hold at the 200Hz
+  update instant (not averaged), and the surrogate's output is held (ZOH) for the controller
+  until the next 200Hz update — this adds up to 5ms of feedback latency that must be accounted
+  for in gain tuning. Ablation experiment D is about *unintended* rate mismatches (e.g.
+  inconsistent ZOH convention between training and runtime), not about the sanctioned 8kHz/200Hz
+  split itself.
+- **Training data generation is staged, not built for full coverage upfront** (仕様書 §4.1):
+  Step1 = PTP feedforward torque waveforms only. Only if Phase5 closed-loop testing shows
+  divergence/insufficient accuracy do you add Step2 (actual closed-loop torque waveforms
+  recorded from running PTP with the controller) and, if still insufficient, Step3 (PRBS/chirp
+  broadband signals). Don't jump straight to broadband excitation — that skips the diagnostic
+  value of seeing which step fixes it.
+- **Surrogate output form is also staged** (仕様書 §3.1): start with y_k = θ (angle) directly.
+  Only if accuracy/stability is insufficient, switch to outputting θ_dot (and/or θ_ddot) and
+  numerically integrate to reconstruct θ for the controller feedback — and when doing so,
+  evaluate integration drift explicitly (checked during the long-horizon rollout test, §6.1).
 - **Training loss must use multi-step rollout, not 1-step-only prediction** (仕様書 §5.1) — a
   scheduled horizon (1→5→20→50 steps), since 1-step-only loss is Ablation B (a known way to
   induce divergence, not the default training method).
 - **Prefer bounded activations (tanh/SiLU) over ReLU** in the state-transition network — 仕様書
   §3.2 notes ReLU extrapolates linearly and is more prone to divergence outside the training
   distribution (this is also Ablation C).
+- **Do NOT add an input-output monotonicity/sign constraint to the NSS model yet** (M-04,
+  仕様書 §3.3). The current leading divergence hypothesis is that with no such constraint, the
+  surrogate can predict a state change with the same sign as the controller's corrective torque,
+  turning error correction into a positive-feedback runaway. The fix (a direction-constrained
+  architecture) is deliberately deferred — first ship the unconstrained baseline (M-01's scale
+  constraint only), instrument it with the M-04 sign-consistency diagnostic (log the sign of
+  τ_fb vs. Δŷ at every step), and only design the constrained architecture if Ablation
+  experiment F (which *is* the unconstrained baseline, not a separate degraded variant)
+  confirms the hypothesis.
 - Every trained NSS model must have its equilibrium-point Jacobian eigenvalues computed and
   reported (requirement M-02) — this is a required diagnostic, not optional analysis.
 - Fix random seeds for reproducibility (N-01); keep dataset/hyperparameter/model/metric
