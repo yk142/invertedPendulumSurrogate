@@ -1,16 +1,21 @@
-function manifest = gen_training_data(n_scenarios, seed, out_dir)
-%GEN_TRAINING_DATA Phase2 Step1: PTP feedforward-torque training data.
-%   manifest = gen_training_data(n_scenarios, seed, out_dir)
+function manifest = gen_training_data(n_scenarios, seed, out_dir, n_free_vibration)
+%GEN_TRAINING_DATA Phase2 Step1: PTP feedforward torque + free-vibration auxiliary data.
+%   manifest = gen_training_data(n_scenarios, seed, out_dir, n_free_vibration)
 %
-%   For each scenario: sample a random PTP move (start/target angle within
-%   the pendulum's operating range), build a trapezoidal-velocity
-%   reference trajectory, compute the inverse-dynamics feedforward torque,
-%   saturate it, and run it through the real plant (simulate_pendulum) to
-%   record the actual (theta, theta_dot, tau) response. This is the
-%   standard-configuration Step1 dataset (仕様書§4.1); Step2/3 are added
-%   later only if Phase5 closed-loop testing shows it's needed.
+%   Two scenario types are generated (仕様書§4.1):
+%     1. PTP feedforward: sample a random PTP move, build a trapezoidal-
+%        velocity reference trajectory, compute the inverse-dynamics
+%        feedforward torque, saturate it, and run it through the real
+%        plant (simulate_pendulum) to record the actual (theta, theta_dot,
+%        tau) response. This is the Step1 standard configuration.
+%     2. Free vibration (auxiliary, all stages): random initial condition,
+%        tau=0 throughout. Without this, the dataset never contains true
+%        zero-torque samples away from theta=0 (PTP dwell segments still
+%        apply gravity-compensation torque), which was found in Phase4 to
+%        leave the trained surrogate without a correctly-damped zero-input
+%        response away from theta=0 (see issue #10).
 %
-%   Scenarios are split train/val/test (70/15/15) by scenario, matching
+%   All scenarios are split train/val/test (70/15/15) together, matching
 %   仕様書§4.3. Returns the manifest struct and also writes it as JSON to
 %   <out_dir>/manifest.json.
 
@@ -22,6 +27,9 @@ if nargin < 2 || isempty(seed)
 end
 if nargin < 3 || isempty(out_dir)
     out_dir = fullfile(fileparts(mfilename('fullpath')), '..', 'python', 'data');
+end
+if nargin < 4 || isempty(n_free_vibration)
+    n_free_vibration = 20;
 end
 
 addpath(fileparts(mfilename('fullpath')));
@@ -37,6 +45,7 @@ margin = 0.05 * (params.theta_max - params.theta_min); % keep clear of hard rang
 lo = params.theta_min + margin;
 hi = params.theta_max - margin;
 
+n_total = n_scenarios + n_free_vibration;
 entries = struct('file', {}, 'theta_start', {}, 'theta_end', {}, 'duration', {});
 
 for i = 1:n_scenarios
@@ -77,22 +86,49 @@ for i = 1:n_scenarios
     entries(i).duration = T_total;
 end
 
-% Shuffle scenario order and split 70/15/15 by scenario.
-order = randperm(n_scenarios);
-n_train = round(0.70 * n_scenarios);
-n_val = round(0.15 * n_scenarios);
+for j = 1:n_free_vibration
+    i = n_scenarios + j;
+    theta0 = lo + (hi - lo) * rand();
+    theta_dot0 = -2.0 + 4.0 * rand(); % +-2 rad/s, matches PTP-observed theta_dot range
+    T_total = 10; % s, several damping time constants (see matlab/verify_plant.m)
 
-splits = repmat({'test'}, 1, n_scenarios);
+    N = round(T_total / params.Ts_ctrl);
+    tau_seq = zeros(N, 1);
+    [t, theta, theta_dot] = simulate_pendulum([theta0; theta_dot0], tau_seq, params);
+
+    meta = struct('Ts', params.Ts_ctrl, 'seed', seed, 'scenario_id', i, ...
+        'scenario_type', 'free_vibration_zero_input', 'theta_start', theta0, ...
+        'theta_end', NaN, 'theta_dot_start', theta_dot0);
+
+    filename = sprintf('scenario_%03d.mat', i);
+    filepath = fullfile(out_dir, filename);
+    tau_logged = [tau_seq; tau_seq(end)];
+    utils.export_dataset(filepath, t, theta, theta_dot, tau_logged, meta);
+
+    entries(i).file = filename;
+    entries(i).theta_start = theta0;
+    entries(i).theta_end = NaN;
+    entries(i).duration = T_total;
+end
+
+% Shuffle scenario order and split 70/15/15 across both scenario types together.
+order = randperm(n_total);
+n_train = round(0.70 * n_total);
+n_val = round(0.15 * n_total);
+
+splits = repmat({'test'}, 1, n_total);
 splits(order(1:n_train)) = {'train'};
 splits(order(n_train+1 : n_train+n_val)) = {'val'};
 
-for i = 1:n_scenarios
+for i = 1:n_total
     entries(i).split = splits{i};
 end
 
 manifest.seed = seed;
-manifest.n_scenarios = n_scenarios;
-manifest.step = 'Step1_ptp_feedforward';
+manifest.n_scenarios = n_total;
+manifest.n_ptp_feedforward = n_scenarios;
+manifest.n_free_vibration = n_free_vibration;
+manifest.step = 'Step1_ptp_feedforward_plus_free_vibration_aux';
 manifest.Ts = params.Ts_ctrl;
 manifest.scenarios = entries;
 
@@ -101,7 +137,7 @@ fid = fopen(manifest_path, 'w');
 fwrite(fid, jsonencode(manifest, 'PrettyPrint', true));
 fclose(fid);
 
-fprintf('Generated %d scenarios -> %s (train=%d, val=%d, test=%d)\n', ...
-    n_scenarios, out_dir, n_train, n_val, n_scenarios - n_train - n_val);
+fprintf('Generated %d scenarios (%d PTP + %d free-vibration) -> %s (train=%d, val=%d, test=%d)\n', ...
+    n_total, n_scenarios, n_free_vibration, out_dir, n_train, n_val, n_total - n_train - n_val);
 
 end
