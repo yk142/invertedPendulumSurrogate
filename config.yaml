@@ -1,0 +1,20 @@
+# Project-wide configuration (単振り子サロゲートPoC, REQ/SPEC/PLAN-SURR-001)
+seed: 42
+
+sampling:
+  ts_ctrl_hz: 8000   # 物理モデル・コントローラ制御周期(基本、仕様書§6.4)
+  ts_surr_hz: 200    # サロゲート動作周期(200Hzへダウンサンプルする場合。8000でも可)
+
+paths:
+  data_dir: python/data
+  models_dir: python/models
+  experiments_dir: experiments
+  reports_dir: reports
+
+plant:
+  J: 0.02       # kg*m^2
+  b: 0.05       # N*m*s/rad
+  mgl: 0.15     # kg*m (equivalent m*g*l term)
+  tau_max: 3.0  # N*m
+  theta_min: -1.5707963267948966  # -pi/2
+  theta_max: 1.5707963267948966   # +pi/2
