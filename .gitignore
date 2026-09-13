@@ -2,6 +2,7 @@
 __pycache__/
 *.pyc
 python/data/*.mat
+python/models/checkpoints/*.pt
 experiments/*/
 !experiments/.gitkeep
 reports/*.html
