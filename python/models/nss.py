@@ -38,23 +38,30 @@ class Normalizer:
 
 
 class NSSModel(nn.Module):
-    def __init__(self, n_x=2, n_u=1, n_y=1, hidden=(64, 64), increment_scale=1.0):
+    def __init__(self, n_x=2, n_u=1, n_y=1, hidden=(64, 64), increment_scale=1.0,
+                 hidden_activation="tanh", bounded_increment=True):
+        """hidden_activation/bounded_increment default to the M-01 standard
+        config (bounded tanh increment). Set both to their non-default value
+        together to reproduce Ablation C (仕様書§6.3): unbounded ReLU
+        increments extrapolate linearly instead of saturating."""
         super().__init__()
+        activation_cls = {"tanh": nn.Tanh, "relu": nn.ReLU}[hidden_activation]
         layers = []
         in_dim = n_x + n_u
         for h in hidden:
-            layers += [nn.Linear(in_dim, h), nn.Tanh()]
+            layers += [nn.Linear(in_dim, h), activation_cls()]
             in_dim = h
         layers += [nn.Linear(in_dim, n_x)]
         self.f_theta = nn.Sequential(*layers)
         self.g_phi = nn.Linear(n_x, n_y)
         self.increment_scale = increment_scale
+        self.bounded_increment = bounded_increment
         self.n_x = n_x
 
     def step(self, x, u):
         """One state-transition step, in normalized coordinates."""
         raw = self.f_theta(torch.cat([x, u], dim=-1))
-        delta = self.increment_scale * torch.tanh(raw)
+        delta = self.increment_scale * torch.tanh(raw) if self.bounded_increment else raw
         return x + delta
 
     def output(self, x):

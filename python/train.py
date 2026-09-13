@@ -71,8 +71,12 @@ def one_step_val_error(model, val_loader, y_normalizer):
     return float(np.mean(np.concatenate(errors)))
 
 
-def train_variant(name, schedule, train_ds, val_ds, logger):
-    model = NSSModel(n_x=2, n_u=1, n_y=1, hidden=(64, 64), increment_scale=1.0)
+def default_model_factory():
+    return NSSModel(n_x=2, n_u=1, n_y=1, hidden=(64, 64), increment_scale=1.0)
+
+
+def train_variant(name, schedule, train_ds, val_ds, logger, model_factory=default_model_factory):
+    model = model_factory()
     optimizer = torch.optim.Adam(model.parameters(), lr=LEARNING_RATE)
     train_loader = DataLoader(train_ds, batch_size=BATCH_SIZE, shuffle=True)
     val_loader = DataLoader(val_ds, batch_size=BATCH_SIZE, shuffle=False)
