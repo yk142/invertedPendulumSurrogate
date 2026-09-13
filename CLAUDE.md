@@ -5,8 +5,35 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ## Project state
 
 This repository started as planning documents only; implementation now proceeds phase-by-phase
-per `03_実装計画書.md`. There is no build/lint/test tooling yet — update this file with real
-commands (test runners, MATLAB entry points, Python env setup) as each phase adds them.
+per `03_実装計画書.md`. Phase 0-3 are done (env/interchange, physical plant, Step1 PTP
+feedforward dataset, Step1 NSS training). Keep this section and the commands below current as
+later phases land.
+
+## Common commands
+
+```bash
+python3 -m venv .venv && source .venv/bin/activate && pip install -r requirements.txt
+
+# Phase0: environment + MATLAB<->Python interchange + experiment framework sanity check
+python python/verify_env.py
+
+# Phase1: physical plant check (step response, free-vibration energy monotonicity) - run via
+# MATLAB MCP (mcp__matlab__run_matlab_file) or MATLAB desktop, not plain `matlab` CLI
+#   matlab/verify_plant.m
+
+# Phase2 Step1: generate the PTP-feedforward training dataset (60 scenarios, seed 42) -
+# via MATLAB MCP (mcp__matlab__evaluate_matlab_code), addpath('matlab') first:
+#   gen_training_data(60, 42)
+python python/plot_coverage.py --data-dir python/data --out reports/coverage_step1.png
+
+# Phase3: train the NSS surrogate (n1 baseline + rollout-schedule variant), ~4 min on CPU
+python python/train.py
+```
+
+Generated datasets (`python/data/*.mat`), model checkpoints (`python/models/checkpoints/*.pt`),
+and experiment run directories (`experiments/*/`) are gitignored — regenerate them with the
+commands above rather than expecting them to be checked in. `python/data/manifest.json` and
+`reports/*.png` (small, and useful as recorded evidence) are the exception and are committed.
 
 ## Development workflow (required)
 
