@@ -1,0 +1,428 @@
+{
+  "seed": 42,
+  "n_scenarios": 60,
+  "step": "Step1_ptp_feedforward",
+  "Ts": 0.000125,
+  "scenarios": [
+    {
+      "file": "scenario_001.mat",
+      "theta_start": -0.354729456854437,
+      "theta_end": 1.2743646784966907,
+      "duration": 10.624074561769746,
+      "split": "train"
+    },
+    {
+      "file": "scenario_002.mat",
+      "theta_start": -0.972652578935777,
+      "theta_end": -1.2494891497619902,
+      "duration": 12.832290311184181,
+      "split": "test"
+    },
+    {
+      "file": "scenario_003.mat",
+      "theta_start": -1.3555154076636082,
+      "theta_end": 1.3286388054614284,
+      "duration": 10.727299868828403,
+      "split": "train"
+    },
+    {
+      "file": "scenario_004.mat",
+      "theta_start": -0.89515265940370081,
+      "theta_end": -0.55349201826137873,
+      "duration": 11.164916560792168,
+      "split": "train"
+    },
+    {
+      "file": "scenario_005.mat",
+      "theta_start": 0.31625660910832187,
+      "theta_end": -1.0193070950546073,
+      "duration": 11.824279936868145,
+      "split": "train"
+    },
+    {
+      "file": "scenario_006.mat",
+      "theta_start": 0.80631603476342839,
+      "theta_end": -0.84915237568653446,
+      "duration": 10.185801650879991,
+      "split": "train"
+    },
+    {
+      "file": "scenario_007.mat",
+      "theta_start": 0.30407590499846493,
+      "theta_end": -0.93157109330315779,
+      "duration": 13.862528132298237,
+      "split": "test"
+    },
+    {
+      "file": "scenario_008.mat",
+      "theta_start": 0.87197295890632365,
+      "theta_end": -0.55244155263978445,
+      "duration": 11.760609974958406,
+      "split": "test"
+    },
+    {
+      "file": "scenario_009.mat",
+      "theta_start": -1.0686617142745263,
+      "theta_end": -0.013636965385833033,
+      "duration": 11.035119926400068,
+      "split": "val"
+    },
+    {
+      "file": "scenario_010.mat",
+      "theta_start": 0.45952093311399111,
+      "theta_end": -0.53237439009885068,
+      "duration": 10.739417822102109,
+      "split": "train"
+    },
+    {
+      "file": "scenario_011.mat",
+      "theta_start": 1.3277192551414512,
+      "theta_end": 0.77791973096942613,
+      "duration": 12.39159991524434,
+      "split": "train"
+    },
+    {
+      "file": "scenario_012.mat",
+      "theta_start": 1.1928212977386941,
+      "theta_end": -1.1635100392057258,
+      "duration": 11.301321323053058,
+      "split": "train"
+    },
+    {
+      "file": "scenario_013.mat",
+      "theta_start": -0.31475754800030531,
+      "theta_end": -0.64649538181378963,
+      "duration": 11.123738038749522,
+      "split": "train"
+    },
+    {
+      "file": "scenario_014.mat",
+      "theta_start": 0.12072033106831115,
+      "theta_end": -1.0152628352112123,
+      "duration": 13.947547746402069,
+      "split": "train"
+    },
+    {
+      "file": "scenario_015.mat",
+      "theta_start": 0.76975395048056416,
+      "theta_end": -0.85186134138064651,
+      "duration": 12.827429375390469,
+      "split": "val"
+    },
+    {
+      "file": "scenario_016.mat",
+      "theta_start": 0.64750251306327211,
+      "theta_end": -1.2043603735825172,
+      "duration": 13.452413703502375,
+      "split": "val"
+    },
+    {
+      "file": "scenario_017.mat",
+      "theta_start": 0.34861724049855458,
+      "theta_end": -0.478124570547397,
+      "duration": 11.300733288106988,
+      "split": "train"
+    },
+    {
+      "file": "scenario_018.mat",
+      "theta_start": 0.6491961747771211,
+      "theta_end": 0.38893458731033337,
+      "duration": 10.478376983753208,
+      "split": "test"
+    },
+    {
+      "file": "scenario_019.mat",
+      "theta_start": 0.60293543126047178,
+      "theta_end": 0.1732571943452097,
+      "duration": 12.090931317527977,
+      "split": "val"
+    },
+    {
+      "file": "scenario_020.mat",
+      "theta_start": -0.20487294397024036,
+      "theta_end": -1.3418458064594814,
+      "duration": 12.545641645055122,
+      "split": "train"
+    },
+    {
+      "file": "scenario_021.mat",
+      "theta_start": -0.524896097430147,
+      "theta_end": 0.024233058359295345,
+      "duration": 11.641531692142518,
+      "split": "train"
+    },
+    {
+      "file": "scenario_022.mat",
+      "theta_start": 0.72255382151701442,
+      "theta_end": -0.7668051218384343,
+      "duration": 10.644885149016018,
+      "split": "train"
+    },
+    {
+      "file": "scenario_023.mat",
+      "theta_start": 1.2149414890777877,
+      "theta_end": 0.871189848774784,
+      "duration": 13.214688307596457,
+      "split": "train"
+    },
+    {
+      "file": "scenario_024.mat",
+      "theta_start": -0.88620228037684012,
+      "theta_end": 1.109934419181013,
+      "duration": 13.584365199693973,
+      "split": "train"
+    },
+    {
+      "file": "scenario_025.mat",
+      "theta_start": -0.514583051406537,
+      "theta_end": -1.102552208266796,
+      "duration": 13.272059063689973,
+      "split": "val"
+    },
+    {
+      "file": "scenario_026.mat",
+      "theta_start": 1.0199416952549609,
+      "theta_end": -1.3940600081321795,
+      "duration": 10.888431241882921,
+      "split": "train"
+    },
+    {
+      "file": "scenario_027.mat",
+      "theta_start": -1.074805352423601,
+      "theta_end": -0.45913228611552015,
+      "duration": 12.075162486973465,
+      "split": "train"
+    },
+    {
+      "file": "scenario_028.mat",
+      "theta_start": 0.574022582824085,
+      "theta_end": -0.38557821539909609,
+      "duration": 11.007129183301457,
+      "split": "train"
+    },
+    {
+      "file": "scenario_029.mat",
+      "theta_start": -0.0077796663073896877,
+      "theta_end": -0.56300331514501734,
+      "duration": 12.438257335919587,
+      "split": "train"
+    },
+    {
+      "file": "scenario_030.mat",
+      "theta_start": 0.0075747597251289989,
+      "theta_end": -1.2681639540467582,
+      "duration": 10.958247562667889,
+      "split": "test"
+    },
+    {
+      "file": "scenario_031.mat",
+      "theta_start": -1.0040360949812497,
+      "theta_end": -0.02982161774489267,
+      "duration": 12.688542189623515,
+      "split": "val"
+    },
+    {
+      "file": "scenario_032.mat",
+      "theta_start": 0.73971203539651809,
+      "theta_end": -0.74181236793412719,
+      "duration": 12.529223322374317,
+      "split": "train"
+    },
+    {
+      "file": "scenario_033.mat",
+      "theta_start": 0.37754636252615703,
+      "theta_end": 0.10115053620638137,
+      "duration": 11.283120259886942,
+      "split": "train"
+    },
+    {
+      "file": "scenario_034.mat",
+      "theta_start": -0.88634803028778275,
+      "theta_end": -1.2984276974736297,
+      "duration": 10.066351315711424,
+      "split": "train"
+    },
+    {
+      "file": "scenario_035.mat",
+      "theta_start": 0.034192316801208822,
+      "theta_end": -0.77331497702753649,
+      "duration": 12.763750952409865,
+      "split": "train"
+    },
+    {
+      "file": "scenario_036.mat",
+      "theta_start": -0.32024826357626135,
+      "theta_end": 1.2348249517959102,
+      "duration": 10.453894084962357,
+      "split": "train"
+    },
+    {
+      "file": "scenario_037.mat",
+      "theta_start": 1.2007929160893607,
+      "theta_end": -0.68440392369897329,
+      "duration": 12.22080324639785,
+      "split": "train"
+    },
+    {
+      "file": "scenario_038.mat",
+      "theta_start": 0.083835035224126608,
+      "theta_end": -0.72989545180335835,
+      "duration": 13.601672228653321,
+      "split": "train"
+    },
+    {
+      "file": "scenario_039.mat",
+      "theta_start": 0.37633550431661478,
+      "theta_end": -0.45513254329939434,
+      "duration": 13.588441039810309,
+      "split": "train"
+    },
+    {
+      "file": "scenario_040.mat",
+      "theta_start": 1.0944610800980707,
+      "theta_end": 0.7913294629071701,
+      "duration": 10.646514856378456,
+      "split": "train"
+    },
+    {
+      "file": "scenario_041.mat",
+      "theta_start": 1.1268854196607023,
+      "theta_end": 0.30092107675953383,
+      "duration": 12.654007076432222,
+      "split": "train"
+    },
+    {
+      "file": "scenario_042.mat",
+      "theta_start": -1.3994054029512784,
+      "theta_end": -0.95904264044123377,
+      "duration": 12.607845038010403,
+      "split": "train"
+    },
+    {
+      "file": "scenario_043.mat",
+      "theta_start": -0.7796101605911514,
+      "theta_end": 0.599922614726839,
+      "duration": 12.985965620472097,
+      "split": "train"
+    },
+    {
+      "file": "scenario_044.mat",
+      "theta_start": 0.42307705474386537,
+      "theta_end": 0.987405930783074,
+      "duration": 10.374699071312371,
+      "split": "train"
+    },
+    {
+      "file": "scenario_045.mat",
+      "theta_start": -0.37402475516505818,
+      "theta_end": -0.66387466509423187,
+      "duration": 11.572390898667042,
+      "split": "test"
+    },
+    {
+      "file": "scenario_046.mat",
+      "theta_start": 1.1084855198486441,
+      "theta_end": 0.37078572963137457,
+      "duration": 12.307615538505436,
+      "split": "val"
+    },
+    {
+      "file": "scenario_047.mat",
+      "theta_start": -0.021155722317510062,
+      "theta_end": -0.86168015159727451,
+      "duration": 10.097263865725814,
+      "split": "train"
+    },
+    {
+      "file": "scenario_048.mat",
+      "theta_start": 0.41131322651051905,
+      "theta_end": -0.91294804574767308,
+      "duration": 13.659457560881794,
+      "split": "train"
+    },
+    {
+      "file": "scenario_049.mat",
+      "theta_start": -0.36711762606904164,
+      "theta_end": -1.3700141404726069,
+      "duration": 13.866619276174678,
+      "split": "val"
+    },
+    {
+      "file": "scenario_050.mat",
+      "theta_start": 1.3108546026729586,
+      "theta_end": 0.99811072074959251,
+      "duration": 13.404546686067427,
+      "split": "train"
+    },
+    {
+      "file": "scenario_051.mat",
+      "theta_start": -0.5176408352714893,
+      "theta_end": -0.93448724307220132,
+      "duration": 12.784119186699892,
+      "split": "train"
+    },
+    {
+      "file": "scenario_052.mat",
+      "theta_start": 0.19809329152918864,
+      "theta_end": -1.1389566310767323,
+      "duration": 10.560336060946096,
+      "split": "test"
+    },
+    {
+      "file": "scenario_053.mat",
+      "theta_start": 0.051825871087893161,
+      "theta_end": 1.0669972233883298,
+      "duration": 12.809936335948438,
+      "split": "train"
+    },
+    {
+      "file": "scenario_054.mat",
+      "theta_start": -0.39727941038313874,
+      "theta_end": 0.87469806002161343,
+      "duration": 13.652962210225885,
+      "split": "train"
+    },
+    {
+      "file": "scenario_055.mat",
+      "theta_start": 0.032069877242046685,
+      "theta_end": 0.84340974855894624,
+      "duration": 13.183170677744403,
+      "split": "val"
+    },
+    {
+      "file": "scenario_056.mat",
+      "theta_start": 1.1027141250433581,
+      "theta_end": -0.45805790257306367,
+      "duration": 12.313120563984697,
+      "split": "train"
+    },
+    {
+      "file": "scenario_057.mat",
+      "theta_start": -1.3120923091335648,
+      "theta_end": -0.097269312153593246,
+      "duration": 12.363333042276043,
+      "split": "train"
+    },
+    {
+      "file": "scenario_058.mat",
+      "theta_start": -1.3274792690883537,
+      "theta_end": 0.91213159627109786,
+      "duration": 12.088973040219217,
+      "split": "test"
+    },
+    {
+      "file": "scenario_059.mat",
+      "theta_start": 0.7633887866380813,
+      "theta_end": -0.80349711508855193,
+      "duration": 10.206726884674431,
+      "split": "train"
+    },
+    {
+      "file": "scenario_060.mat",
+      "theta_start": 0.088653132171457427,
+      "theta_end": 0.38857389203730119,
+      "duration": 12.065201393204781,
+      "split": "test"
+    }
+  ]
+}
