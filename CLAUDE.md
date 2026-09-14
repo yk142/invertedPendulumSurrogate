@@ -4,10 +4,14 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project state
 
-This repository started as planning documents only; implementation now proceeds phase-by-phase
-per `03_実装計画書.md`. Phase 0-3 are done (env/interchange, physical plant, Step1 PTP
-feedforward dataset, Step1 NSS training). Keep this section and the commands below current as
-later phases land.
+This repository started as planning documents only; implementation now proceeded phase-by-phase
+per `03_実装計画書.md`, and **Phase 0-7 (the full planned PoC) are done**. Key findings from
+Phase3-6 (why the surrogate diverges in closed loop, and why some intuitive fixes made things
+worse) are consolidated in `04_閉ループ組み込みチェックリスト.md` and
+`05_6軸展開への申し送り.md` — read those before starting Stage3 (2-link) or Stage4 (6-axis)
+work, since they capture non-obvious lessons (e.g. training-loss improvements that made
+long-horizon stability catastrophically worse — see issue #10) that aren't visible from the code
+alone. `reports/report_template.md` is the dimension-agnostic report template referenced by F-09.
 
 ## Common commands
 
@@ -80,7 +84,15 @@ dimensions (non-functional requirement N-03) since Stage3/4 will reuse this fram
   closed-loop validation criteria, and the 5 ablation experiments (A–E) used to reproduce
   divergence causes.
 - `03_実装計画書.md` — Implementation plan: intended directory layout, 8 phases (Phase 0–7)
-  with deliverables/exit criteria per phase, and tooling choices.
+  with deliverables/exit criteria per phase, and tooling choices. **Also the running experiment
+  log** — each phase section has an "実施結果" subsection with the actual numbers/findings from
+  running that phase, not just the plan.
+- `04_閉ループ組み込みチェックリスト.md` — F-10 deliverable: a review checklist for embedding
+  any NSS surrogate in closed-loop control, with each item traced back to the specific
+  experiment/issue that motivated it. Use this when reviewing Stage3/4 work.
+- `05_6軸展開への申し送り.md` — What generalizes as-is to Stage3/4, what needs re-validation,
+  and open questions (e.g. whether the M-04 sign-reversal finding is actually a root cause of
+  divergence, independent of the discretization/gain mechanism found in Phase5/6).
 
 ## Intended architecture (per 03_実装計画書.md)
 
