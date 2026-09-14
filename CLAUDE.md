@@ -143,6 +143,17 @@ docs/                             # copies of the 3 planning documents
   Only if accuracy/stability is insufficient, switch to outputting θ_dot (and/or θ_ddot) and
   numerically integrate to reconstruct θ for the controller feedback — and when doing so,
   evaluate integration drift explicitly (checked during the long-horizon rollout test, §6.1).
+- **The internal state x's components are NOT guaranteed to correspond to physical quantities
+  just because n_x matches the physical state dimension** (found in issue #21, after issue #19
+  reused x's second channel as a θ̇ estimate). Only y_k=g_φ(x_k) is supervised during training;
+  x0 is initialized from the true (θ,θ̇) at each training window's start, but nothing constrains
+  x_1 onward to keep tracking θ̇ — the network is free to use that channel however minimizes the
+  θ-only loss. Verified empirically: the trained model's internal second channel diverges
+  numerically from the true θ̇ trajectory even under 1-step (always-reset) evaluation. Before
+  relying on an internal state channel as a physical quantity (e.g. for a controller derivative
+  term), either supervise it directly (extend g_φ to output [θ, θ̇] and train against both) or
+  build in the kinematic constraint (M-03's structured-NSS idea) — don't assume it "because the
+  dimension matches."
 - **Training loss must use multi-step rollout, not 1-step-only prediction** (仕様書 §5.1) — a
   scheduled horizon (1→5→20→50 steps), since 1-step-only loss is Ablation B (a known way to
   induce divergence, not the default training method).
