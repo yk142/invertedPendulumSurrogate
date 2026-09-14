@@ -1,4 +1,4 @@
-function manifest = gen_training_data(n_scenarios, seed, out_dir, n_free_vibration)
+function manifest = gen_training_data(n_scenarios, seed, out_dir, n_free_vibration, n_free_vibration_highvel)
 %GEN_TRAINING_DATA Phase2 Step1: PTP feedforward torque + free-vibration auxiliary data.
 %   manifest = gen_training_data(n_scenarios, seed, out_dir, n_free_vibration)
 %
@@ -31,6 +31,9 @@ end
 if nargin < 4 || isempty(n_free_vibration)
     n_free_vibration = 20;
 end
+if nargin < 5 || isempty(n_free_vibration_highvel)
+    n_free_vibration_highvel = 0;
+end
 
 addpath(fileparts(mfilename('fullpath')));
 if ~exist(out_dir, 'dir')
@@ -45,7 +48,7 @@ margin = 0.05 * (params.theta_max - params.theta_min); % keep clear of hard rang
 lo = params.theta_min + margin;
 hi = params.theta_max - margin;
 
-n_total = n_scenarios + n_free_vibration;
+n_total = n_scenarios + n_free_vibration + n_free_vibration_highvel;
 entries = struct('file', {}, 'theta_start', {}, 'theta_end', {}, 'duration', {});
 
 for i = 1:n_scenarios
@@ -111,6 +114,35 @@ for j = 1:n_free_vibration
     entries(i).duration = T_total;
 end
 
+% High-velocity-biased free vibration (Issue #25): |theta_dot0| drawn from
+% [1.2, 2.0] rad/s instead of the uniform [-2,2] above, to thicken coverage
+% of the fast-swing region where M-04 sign reversal was found concentrated.
+for j = 1:n_free_vibration_highvel
+    i = n_scenarios + n_free_vibration + j;
+    theta0 = lo + (hi - lo) * rand();
+    speed = 1.2 + 0.8 * rand();
+    theta_dot0 = speed * sign(rand() - 0.5);
+    T_total = 10;
+
+    N = round(T_total / params.Ts_ctrl);
+    tau_seq = zeros(N, 1);
+    [t, theta, theta_dot] = simulate_pendulum([theta0; theta_dot0], tau_seq, params);
+
+    meta = struct('Ts', params.Ts_ctrl, 'seed', seed, 'scenario_id', i, ...
+        'scenario_type', 'free_vibration_zero_input_highvel', 'theta_start', theta0, ...
+        'theta_end', NaN, 'theta_dot_start', theta_dot0);
+
+    filename = sprintf('scenario_%03d.mat', i);
+    filepath = fullfile(out_dir, filename);
+    tau_logged = [tau_seq; tau_seq(end)];
+    utils.export_dataset(filepath, t, theta, theta_dot, tau_logged, meta);
+
+    entries(i).file = filename;
+    entries(i).theta_start = theta0;
+    entries(i).theta_end = NaN;
+    entries(i).duration = T_total;
+end
+
 % Shuffle scenario order and split 70/15/15 across both scenario types together.
 order = randperm(n_total);
 n_train = round(0.70 * n_total);
@@ -128,6 +160,7 @@ manifest.seed = seed;
 manifest.n_scenarios = n_total;
 manifest.n_ptp_feedforward = n_scenarios;
 manifest.n_free_vibration = n_free_vibration;
+manifest.n_free_vibration_highvel = n_free_vibration_highvel;
 manifest.step = 'Step1_ptp_feedforward_plus_free_vibration_aux';
 manifest.Ts = params.Ts_ctrl;
 manifest.scenarios = entries;
@@ -137,7 +170,7 @@ fid = fopen(manifest_path, 'w');
 fwrite(fid, jsonencode(manifest, 'PrettyPrint', true));
 fclose(fid);
 
-fprintf('Generated %d scenarios (%d PTP + %d free-vibration) -> %s (train=%d, val=%d, test=%d)\n', ...
-    n_total, n_scenarios, n_free_vibration, out_dir, n_train, n_val, n_total - n_train - n_val);
+fprintf('Generated %d scenarios (%d PTP + %d free-vibration + %d high-vel free-vibration) -> %s (train=%d, val=%d, test=%d)\n', ...
+    n_total, n_scenarios, n_free_vibration, n_free_vibration_highvel, out_dir, n_train, n_val, n_total - n_train - n_val);
 
 end
