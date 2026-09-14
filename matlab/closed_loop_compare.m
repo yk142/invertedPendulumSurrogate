@@ -1,4 +1,4 @@
-function results = closed_loop_compare(Kp, Kd, theta_target, T_total, weights_path, runtime_ratio)
+function results = closed_loop_compare(Kp, Kd, theta_target, T_total, weights_path, runtime_ratio, theta_dot_source)
 %CLOSED_LOOP_COMPARE Phase5: physical-plant vs. NSS-surrogate closed loop (仕様書§6.2, §7).
 %   results = closed_loop_compare(Kp, Kd, theta_target, T_total, weights_path, runtime_ratio)
 %
@@ -40,6 +40,9 @@ if nargin < 6 || isempty(runtime_ratio)
 end
 ratio = runtime_ratio;
 N = round(T_total / params.Ts_ctrl);
+if nargin < 7 || isempty(theta_dot_source)
+    theta_dot_source = 'finite_difference'; % or 'internal_state'
+end
 
 [theta_ref, theta_dot_ref, ~, t] = ptp_trajectory(0, theta_target, 1.5, 4.0, params.Ts_ctrl, T_total);
 
@@ -72,7 +75,11 @@ for k = 1:N
 
     if mod(k - 1, ratio) == 0
         [x_surr, y_new] = nss.step(w, x_surr, tau_cmd);
-        theta_dot_surr_est = (y_new - y_prev) / (ratio * params.Ts_ctrl);
+        if strcmp(theta_dot_source, 'internal_state')
+            theta_dot_surr_est = x_surr(2); % model's own latent theta_dot, no finite difference
+        else
+            theta_dot_surr_est = (y_new - y_prev) / (ratio * params.Ts_ctrl);
+        end
         y_prev = y_new;
         y_surr = y_new;
     end
