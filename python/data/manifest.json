@@ -3,6 +3,7 @@
   "n_scenarios": 80,
   "n_ptp_feedforward": 60,
   "n_free_vibration": 20,
+  "n_free_vibration_highvel": 0,
   "step": "Step1_ptp_feedforward_plus_free_vibration_aux",
   "Ts": 0.000125,
   "scenarios": [
