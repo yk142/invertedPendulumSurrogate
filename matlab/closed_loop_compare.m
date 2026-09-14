@@ -1,6 +1,6 @@
-function results = closed_loop_compare(Kp, Kd, theta_target, T_total, weights_path)
+function results = closed_loop_compare(Kp, Kd, theta_target, T_total, weights_path, runtime_ratio)
 %CLOSED_LOOP_COMPARE Phase5: physical-plant vs. NSS-surrogate closed loop (仕様書§6.2, §7).
-%   results = closed_loop_compare(Kp, Kd, theta_target, T_total, weights_path)
+%   results = closed_loop_compare(Kp, Kd, theta_target, T_total, weights_path, runtime_ratio)
 %
 %   Same PD controller (angle error + finite-difference angle-rate error,
 %   both derived from the theta measurement only - so the comparison stays
@@ -12,6 +12,14 @@ function results = closed_loop_compare(Kp, Kd, theta_target, T_total, weights_pa
 %
 %   Saturation (saturate_torque) is applied identically to both loops
 %   (仕様書§7).
+%
+%   runtime_ratio (optional): control-steps-per-surrogate-update actually
+%   used at runtime. Defaults to the trained ratio (Ts_surr/Ts_ctrl = 40).
+%   Passing a different value reproduces Ablation D (仕様書§6.3): the model
+%   internally still assumes each of its own steps spans Ts_surr=5ms (that
+%   is baked into its trained weights), but the wall-clock time between
+%   surrogate calls is actually runtime_ratio*Ts_ctrl - an unintended
+%   sampling-period mismatch between training and runtime.
 
 if nargin < 1 || isempty(Kp), Kp = 0.35; end
 if nargin < 2 || isempty(Kd), Kd = 0.09; end
@@ -26,7 +34,11 @@ params = pendulum_params();
 nss = nss_surrogate();
 w = nss.load(weights_path);
 
-ratio = round(params.Ts_surr / params.Ts_ctrl); % 40 (8kHz / 200Hz)
+trained_ratio = round(params.Ts_surr / params.Ts_ctrl); % 40 (8kHz / 200Hz)
+if nargin < 6 || isempty(runtime_ratio)
+    runtime_ratio = trained_ratio;
+end
+ratio = runtime_ratio;
 N = round(T_total / params.Ts_ctrl);
 
 [theta_ref, theta_dot_ref, ~, t] = ptp_trajectory(0, theta_target, 1.5, 4.0, params.Ts_ctrl, T_total);
