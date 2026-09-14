@@ -41,7 +41,7 @@ end
 ratio = runtime_ratio;
 N = round(T_total / params.Ts_ctrl);
 if nargin < 7 || isempty(theta_dot_source)
-    theta_dot_source = 'finite_difference'; % or 'internal_state'
+    theta_dot_source = 'finite_difference'; % or 'internal_state' (issue #19) or 'step2_output' (issue #23, requires a Step2 weights file)
 end
 
 [theta_ref, theta_dot_ref, ~, t] = ptp_trajectory(0, theta_target, 1.5, 4.0, params.Ts_ctrl, T_total);
@@ -75,13 +75,16 @@ for k = 1:N
 
     if mod(k - 1, ratio) == 0
         [x_surr, y_new] = nss.step(w, x_surr, tau_cmd);
+        y_theta = y_new(1);
         if strcmp(theta_dot_source, 'internal_state')
-            theta_dot_surr_est = x_surr(2); % model's own latent theta_dot, no finite difference
+            theta_dot_surr_est = x_surr(2); % model's own unsupervised latent (issue #21 caveat)
+        elseif strcmp(theta_dot_source, 'step2_output')
+            theta_dot_surr_est = y_new(2); % explicitly-supervised theta_dot output (仕様書§3.1 Step2)
         else
-            theta_dot_surr_est = (y_new - y_prev) / (ratio * params.Ts_ctrl);
+            theta_dot_surr_est = (y_theta - y_prev) / (ratio * params.Ts_ctrl);
         end
-        y_prev = y_new;
-        y_surr = y_new;
+        y_prev = y_theta;
+        y_surr = y_theta;
     end
     theta_surr(k + 1) = y_surr;
 end

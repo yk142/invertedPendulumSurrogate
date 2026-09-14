@@ -153,7 +153,12 @@ docs/                             # copies of the 3 planning documents
   relying on an internal state channel as a physical quantity (e.g. for a controller derivative
   term), either supervise it directly (extend g_φ to output [θ, θ̇] and train against both) or
   build in the kinematic constraint (M-03's structured-NSS idea) — don't assume it "because the
-  dimension matches."
+  dimension matches." **Update (issue #23)**: the properly-supervised [θ,θ̇] output ("Step2",
+  `python/train_step2.py`) was implemented and closes the loop more robustly than the
+  unsupervised-latent hack (stable across Kd=0.02-2.00 vs. diverging at Kd≥0.09) and improves
+  zero-input energy convergence and equilibrium stability — but its M-04 sign-reversal rate got
+  *worse* (4.32%→6.86%). Closed-loop stability and M-04 risk are independent axes; improving one
+  doesn't validate the other, so check both after any output-form change.
 - **Training loss must use multi-step rollout, not 1-step-only prediction** (仕様書 §5.1) — a
   scheduled horizon (1→5→20→50 steps), since 1-step-only loss is Ablation B (a known way to
   induce divergence, not the default training method).
