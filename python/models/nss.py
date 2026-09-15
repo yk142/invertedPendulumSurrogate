@@ -84,3 +84,54 @@ class NSSModel(nn.Module):
         dxnext_dx = torch.autograd.functional.jacobian(step_of_x, x_eq)
         dxnext_du = torch.autograd.functional.jacobian(step_of_u, u_eq)
         return dxnext_dx, dxnext_du
+
+
+class NSSControlAffine(nn.Module):
+    """Structured NSS (M-03): x_{k+1} = x_k + scale*tanh(f_drift(x_k)) + B*u_k.
+
+    The pendulum's true dynamics are exactly linear in tau (theta_ddot =
+    -b/J*theta_dot - mgl/J*sin(theta) + (1/J)*tau), so the input's effect on
+    the state is modeled as a learned constant matrix B, separate from the
+    free (state-only) drift MLP - not blended through a shared nonlinearity
+    with the state as NSSModel does. This makes d(x_next)/du = B a constant,
+    independent of the operating point, so its sign (and hence the sign of
+    d(y_next)/du = g_phi.weight @ B) cannot flip regionally the way it can
+    in NSSModel - M-04 sign consistency is a structural guarantee here
+    rather than an empirical, unconstrained outcome (issue #27).
+    """
+
+    def __init__(self, n_x=2, n_u=1, n_y=1, hidden=(64, 64), increment_scale=1.0):
+        super().__init__()
+        layers = []
+        in_dim = n_x
+        for h in hidden:
+            layers += [nn.Linear(in_dim, h), nn.Tanh()]
+            in_dim = h
+        layers += [nn.Linear(in_dim, n_x)]
+        self.f_drift = nn.Sequential(*layers)
+        self.B = nn.Parameter(torch.randn(n_x, n_u) * 0.1)
+        self.g_phi = nn.Linear(n_x, n_y)
+        self.increment_scale = increment_scale
+        self.n_x = n_x
+
+    def step(self, x, u):
+        drift = self.increment_scale * torch.tanh(self.f_drift(x))
+        input_effect = u @ self.B.T
+        return x + drift + input_effect
+
+    def output(self, x):
+        return self.g_phi(x)
+
+    def rollout(self, x0, u_seq):
+        x = x0
+        ys = []
+        for k in range(u_seq.shape[1]):
+            x = self.step(x, u_seq[:, k])
+            ys.append(self.output(x))
+        return torch.stack(ys, dim=1), x
+
+    def jacobian_at(self, x_eq, u_eq):
+        step_of_x = lambda xx: self.step(xx.unsqueeze(0), u_eq.unsqueeze(0)).squeeze(0)
+        dxnext_dx = torch.autograd.functional.jacobian(step_of_x, x_eq)
+        dxnext_du = self.B.detach().clone()  # constant, independent of (x_eq, u_eq)
+        return dxnext_dx, dxnext_du

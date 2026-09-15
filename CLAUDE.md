@@ -159,6 +159,14 @@ docs/                             # copies of the 3 planning documents
   zero-input energy convergence and equilibrium stability — but its M-04 sign-reversal rate got
   *worse* (4.32%→6.86%). Closed-loop stability and M-04 risk are independent axes; improving one
   doesn't validate the other, so check both after any output-form change.
+- **M-04 sign reversal has a structural fix for control-affine systems** (issue #27,
+  `models.nss.NSSControlAffine`, `python/train_control_affine.py`): since the pendulum's true
+  dynamics are exactly linear in tau, separating the state-transition into
+  `x_next = x + tanh(f_drift(x)) + B @ u` (B a learned constant matrix, not blended through the
+  shared nonlinearity with x) makes d(x_next)/du state-independent by construction, eliminating
+  regional sign flips entirely (4.32% → 0.00%, plus better 1-step accuracy and fewer zero-input
+  energy violations than the standard NSSModel — no tradeoff observed). Not yet combined with
+  Step2's supervised θ̇ output or tested in closed loop (issue #27 is Step1-only, open follow-up).
 - **Training loss must use multi-step rollout, not 1-step-only prediction** (仕様書 §5.1) — a
   scheduled horizon (1→5→20→50 steps), since 1-step-only loss is Ablation B (a known way to
   induce divergence, not the default training method).
