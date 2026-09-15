@@ -1,4 +1,4 @@
-function results = closed_loop_compare(Kp, Kd, theta_target, T_total, weights_path, runtime_ratio, theta_dot_source)
+function results = closed_loop_compare(Kp, Kd, theta_target, T_total, weights_path, runtime_ratio, theta_dot_source, surrogate_module)
 %CLOSED_LOOP_COMPARE Phase5: physical-plant vs. NSS-surrogate closed loop (仕様書§6.2, §7).
 %   results = closed_loop_compare(Kp, Kd, theta_target, T_total, weights_path, runtime_ratio)
 %
@@ -31,7 +31,12 @@ end
 
 addpath(fileparts(mfilename('fullpath')));
 params = pendulum_params();
-nss = nss_surrogate();
+if nargin < 8 || isempty(surrogate_module)
+    nss = nss_surrogate(); % standard (blended) architecture; pass
+                            % nss_surrogate_control_affine() for issue #27/#29
+else
+    nss = surrogate_module;
+end
 w = nss.load(weights_path);
 
 trained_ratio = round(params.Ts_surr / params.Ts_ctrl); % 40 (8kHz / 200Hz)
