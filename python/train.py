@@ -40,7 +40,7 @@ def make_dataset(data_dir, entries, x_normalizer, u_normalizer, y_normalizer):
     return TensorDataset(x0_n, u_n, y_n)
 
 
-def run_epoch(model, loader, horizon, optimizer=None):
+def run_epoch(model, loader, horizon, optimizer=None, grad_clip=None):
     train_mode = optimizer is not None
     model.train(train_mode)
     total_loss, n_batches = 0.0, 0
@@ -52,6 +52,8 @@ def run_epoch(model, loader, horizon, optimizer=None):
         if train_mode:
             optimizer.zero_grad()
             loss.backward()
+            if grad_clip is not None:
+                torch.nn.utils.clip_grad_norm_(model.parameters(), grad_clip)
             optimizer.step()
         total_loss += loss.item()
         n_batches += 1
@@ -75,16 +77,17 @@ def default_model_factory():
     return NSSModel(n_x=2, n_u=1, n_y=1, hidden=(64, 64), increment_scale=1.0)
 
 
-def train_variant(name, schedule, train_ds, val_ds, logger, model_factory=default_model_factory):
+def train_variant(name, schedule, train_ds, val_ds, logger, model_factory=default_model_factory,
+                   lr=LEARNING_RATE, grad_clip=None):
     model = model_factory()
-    optimizer = torch.optim.Adam(model.parameters(), lr=LEARNING_RATE)
+    optimizer = torch.optim.Adam(model.parameters(), lr=lr)
     train_loader = DataLoader(train_ds, batch_size=BATCH_SIZE, shuffle=True)
     val_loader = DataLoader(val_ds, batch_size=BATCH_SIZE, shuffle=False)
 
     history = []
     for stage, horizon in enumerate(schedule):
         for epoch in range(EPOCHS_PER_STAGE):
-            train_loss = run_epoch(model, train_loader, horizon, optimizer)
+            train_loss = run_epoch(model, train_loader, horizon, optimizer, grad_clip=grad_clip)
             val_loss = run_epoch(model, val_loader, horizon)
             history.append({"stage": stage, "horizon": horizon, "epoch": epoch,
                              "train_loss": train_loss, "val_loss": val_loss})
